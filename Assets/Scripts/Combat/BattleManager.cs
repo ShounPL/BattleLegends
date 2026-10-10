@@ -11,6 +11,7 @@ namespace BattleLegends
         public List<EnemyController> enemies = new List<EnemyController>();
         public bool battleActive;
         public int roundNumber = 1;
+        public int selectedHeroIndex = 0;
 
         private void Awake()
         {
@@ -41,6 +42,11 @@ namespace BattleLegends
             {
                 Victory();
             }
+        }
+
+        public void SetSelectedHero(int index)
+        {
+            selectedHeroIndex = Mathf.Clamp(index, 0, 2);
         }
 
         public void StartBattle()
@@ -74,57 +80,62 @@ namespace BattleLegends
             enemies.Clear();
         }
 
-        private void SpawnHeroes()
+        private HeroDefinition CreateHeroDefinition(int heroIndex)
         {
             string[] names = { "Astra", "Varek", "Lyra" };
+            HeroClass[] classes = { HeroClass.Warrior, HeroClass.Assassin, HeroClass.Mage };
+            string[] roles = { "Frontline Guardian", "Shadow Striker", "Arc Mage" };
+
+            var definition = ScriptableObject.CreateInstance<HeroDefinition>();
+            definition.heroName = names[heroIndex];
+            definition.heroClass = classes[heroIndex];
+            definition.rarity = HeroRarity.Rare;
+            definition.maxHealth = 120 + heroIndex * 25;
+            definition.attackDamage = 18 + heroIndex * 8;
+            definition.defense = 4 + heroIndex;
+            definition.attackSpeed = 1.2f + heroIndex * 0.15f;
+            definition.moveSpeed = 3.5f + heroIndex * 0.25f;
+            definition.primaryRole = roles[heroIndex];
+
+            var first = ScriptableObject.CreateInstance<AbilityDefinition>();
+            first.abilityName = heroIndex == 0 ? "Shield Bash" : heroIndex == 1 ? "Shadow Step" : "Arc Burst";
+            first.abilityType = AbilityType.Damage;
+            first.damageMultiplier = 1.3f + heroIndex * 0.2f;
+            first.cooldown = 4f;
+            first.range = 2.5f;
+            first.description = "A burst damage skill.";
+
+            var second = ScriptableObject.CreateInstance<AbilityDefinition>();
+            second.abilityName = heroIndex == 0 ? "Guardian Ward" : heroIndex == 1 ? "Twin Dagger" : "Solar Flare";
+            second.abilityType = AbilityType.Buff;
+            second.damageMultiplier = 1.6f;
+            second.cooldown = 6f;
+            second.range = 3f;
+            second.description = "High-output follow-up attack.";
+
+            definition.abilities = new AbilityDefinition[] { first, second };
+            return definition;
+        }
+
+        private void SpawnHeroes()
+        {
             Color[] colors = { Color.cyan, Color.magenta, Color.green };
 
-            for (int i = 0; i < names.Length; i++)
+            GameObject heroObject = GameObject.CreatePrimitive(PrimitiveType.Capsule);
+            heroObject.name = CreateHeroDefinition(selectedHeroIndex).heroName;
+            heroObject.transform.position = new Vector3(-2f, 0f, 0f);
+
+            var hero = heroObject.AddComponent<HeroController>();
+            hero.Configure(CreateHeroDefinition(selectedHeroIndex));
+            hero.transform.localScale = new Vector3(1f, 1.2f, 1f);
+
+            var renderer = hero.GetComponent<Renderer>();
+            if (renderer != null)
             {
-                GameObject heroObject = GameObject.CreatePrimitive(PrimitiveType.Capsule);
-                heroObject.name = names[i];
-                heroObject.transform.position = new Vector3(-4f + i * 2f, 0f, 0f);
-
-                var hero = heroObject.AddComponent<HeroController>();
-                var definition = ScriptableObject.CreateInstance<HeroDefinition>();
-                definition.heroName = names[i];
-                definition.heroClass = i == 0 ? HeroClass.Warrior : i == 1 ? HeroClass.Assassin : HeroClass.Mage;
-                definition.rarity = HeroRarity.Rare;
-                definition.maxHealth = 120 + i * 25;
-                definition.attackDamage = 18 + i * 8;
-                definition.defense = 4 + i;
-                definition.attackSpeed = 1.2f + i * 0.15f;
-                definition.moveSpeed = 3.5f + i * 0.25f;
-                definition.primaryRole = "Frontline";
-
-                var basic = ScriptableObject.CreateInstance<AbilityDefinition>();
-                basic.abilityName = i == 0 ? "Shield Bash" : i == 1 ? "Shadow Step" : "Arc Burst";
-                basic.abilityType = AbilityType.Damage;
-                basic.damageMultiplier = 1.3f + i * 0.2f;
-                basic.cooldown = 4f;
-                basic.range = 2.5f;
-                basic.description = "A burst damage skill.";
-
-                var second = ScriptableObject.CreateInstance<AbilityDefinition>();
-                second.abilityName = i == 0 ? "Guardian Ward" : i == 1 ? "Twin Dagger" : "Solar Flare";
-                second.abilityType = AbilityType.Buff;
-                second.damageMultiplier = 1.6f;
-                second.cooldown = 6f;
-                second.range = 3f;
-                second.description = "High-output follow-up attack.";
-
-                definition.abilities = new AbilityDefinition[] { basic, second };
-                hero.Configure(definition);
-                hero.transform.localScale = new Vector3(1f, 1.2f, 1f);
-
-                var renderer = hero.GetComponent<Renderer>();
-                if (renderer != null)
-                {
-                    renderer.material.color = colors[i];
-                }
-
-                heroes.Add(hero);
+                renderer.material.color = colors[selectedHeroIndex];
             }
+
+            heroes.Add(hero);
         }
 
         private void SpawnEnemies()
