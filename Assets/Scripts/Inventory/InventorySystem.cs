@@ -42,72 +42,13 @@ namespace BattleLegends
 
             Instance = this;
             DontDestroyOnLoad(gameObject);
-            LoadInventory();
-        }
-
-        private void OnDestroy()
-        {
-            SaveInventory();
-        }
-
-        public void LoadInventory()
-        {
-            var progress = SaveSystem.Load();
-            if (string.IsNullOrEmpty(progress.inventoryJson))
-            {
-                return;
-            }
-
-            var loaded = JsonUtility.FromJson<InventorySaveData>(progress.inventoryJson);
-            if (loaded == null || loaded.items == null)
-            {
-                return;
-            }
-
-            items = loaded.items;
-            RebuildEquippedLookup();
-        }
-
-        public void SaveInventory()
-        {
-            if (ProgressionSystem.Instance == null)
-            {
-                return;
-            }
-
-            var saveData = new InventorySaveData { items = items };
-            var progress = SaveSystem.Load();
-            progress.inventoryJson = JsonUtility.ToJson(saveData, true);
-            SaveSystem.Save(progress);
-        }
-
-        public void AddItem(ItemDefinition itemDefinition)
-        {
-            if (itemDefinition == null)
-            {
-                return;
-            }
-
-            items.Add(new InventoryItem
-            {
-                itemId = System.Guid.NewGuid().ToString(),
-                itemName = itemDefinition.itemName,
-                rarity = itemDefinition.rarity,
-                slot = itemDefinition.slot,
-                attackBonus = itemDefinition.attackBonus,
-                defenseBonus = itemDefinition.defenseBonus,
-                healthBonus = itemDefinition.healthBonus,
-                value = itemDefinition.value,
-                description = itemDefinition.description
-            });
-
-            SaveInventory();
         }
 
         public InventoryItem AddRandomLoot(int battleTier)
         {
             var rarityRoll = UnityEngine.Random.Range(0, 100);
             ItemRarity rarity = ItemRarity.Common;
+
             if (battleTier >= 3 && rarityRoll > 80)
             {
                 rarity = ItemRarity.Legendary;
@@ -122,22 +63,20 @@ namespace BattleLegends
             }
 
             var slot = (EquipmentSlot)UnityEngine.Random.Range(0, 4);
-            var name = rarity + " " + slot + " of Valor";
             var item = new InventoryItem
             {
-                itemId = System.Guid.NewGuid().ToString(),
-                itemName = name,
+                itemId = Guid.NewGuid().ToString(),
+                itemName = rarity + " " + slot + " of Valor",
                 rarity = rarity,
                 slot = slot,
                 attackBonus = CalculateBonus(rarity, slot, battleTier, true),
                 defenseBonus = CalculateBonus(rarity, slot, battleTier, false),
                 healthBonus = Mathf.RoundToInt((battleTier + 1) * 5f + (int)rarity * 2),
                 value = 25 + (int)rarity * 15 + battleTier * 10,
-                description = "A reward from battle." 
+                description = "A reward from combat or dungeon."
             };
 
             items.Add(item);
-            SaveInventory();
             return item;
         }
 
@@ -156,7 +95,6 @@ namespace BattleLegends
 
             item.equipped = true;
             equippedLookup[item.slot] = item;
-            SaveInventory();
         }
 
         public void UnequipItem(string itemId)
@@ -171,30 +109,6 @@ namespace BattleLegends
             if (equippedLookup.ContainsKey(item.slot) && equippedLookup[item.slot].itemId == itemId)
             {
                 equippedLookup.Remove(item.slot);
-            }
-
-            SaveInventory();
-        }
-
-        public void ApplyEquippedBonuses(ref int attack, ref int defense, ref int health)
-        {
-            foreach (var equipped in equippedLookup.Values)
-            {
-                attack += equipped.attackBonus;
-                defense += equipped.defenseBonus;
-                health += equipped.healthBonus;
-            }
-        }
-
-        private void RebuildEquippedLookup()
-        {
-            equippedLookup.Clear();
-            foreach (var item in items)
-            {
-                if (item.equipped)
-                {
-                    equippedLookup[item.slot] = item;
-                }
             }
         }
 
