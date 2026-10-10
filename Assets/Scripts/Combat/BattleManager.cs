@@ -10,16 +10,43 @@ namespace BattleLegends
         public List<HeroController> heroes = new List<HeroController>();
         public List<EnemyController> enemies = new List<EnemyController>();
         public bool battleActive;
-        public bool battleFinished;
-        public int roundNumber = 1;
         public int selectedHeroIndex = 0;
-        public int lastGoldReward;
-        public int lastXpReward;
 
         private void Awake()
         {
+            if (Instance != null && Instance != this)
+            {
+                Destroy(gameObject);
+                return;
+            }
+
             Instance = this;
             DontDestroyOnLoad(gameObject);
+        }
+
+        public void SetSelectedHero(int index)
+        {
+            selectedHeroIndex = Mathf.Clamp(index, 0, 2);
+        }
+
+        public void StartBattle()
+        {
+            ClearBattle();
+            SpawnHeroes();
+            SpawnEnemies();
+            battleActive = true;
+
+            if (BattleResultController.Instance != null)
+            {
+                BattleResultController.Instance.HideResult();
+            }
+        }
+
+        public void ReturnToMenu()
+        {
+            ClearBattle();
+            battleActive = false;
+            SceneLoader.LoadScene("MainMenu");
         }
 
         private void Update()
@@ -47,41 +74,6 @@ namespace BattleLegends
             }
         }
 
-        public void SetSelectedHero(int index)
-        {
-            selectedHeroIndex = Mathf.Clamp(index, 0, 2);
-        }
-
-        public void StartBattle()
-        {
-            if (BattleResultController.Instance != null)
-            {
-                BattleResultController.Instance.HideResult();
-            }
-
-            ClearBattle();
-            SpawnHeroes();
-            SpawnEnemies();
-            battleActive = true;
-            battleFinished = false;
-            roundNumber = 1;
-        }
-
-        public void ReturnToMenu()
-        {
-            battleActive = false;
-            battleFinished = false;
-            lastGoldReward = 0;
-            lastXpReward = 0;
-
-            if (BattleResultController.Instance != null)
-            {
-                BattleResultController.Instance.HideResult();
-            }
-
-            ClearBattle();
-        }
-
         private void ClearBattle()
         {
             foreach (var hero in heroes)
@@ -104,47 +96,11 @@ namespace BattleLegends
             enemies.Clear();
         }
 
-        private HeroDefinition CreateHeroDefinition(int heroIndex)
-        {
-            string[] names = { "Astra", "Varek", "Lyra" };
-            HeroClass[] classes = { HeroClass.Warrior, HeroClass.Assassin, HeroClass.Mage };
-            string[] roles = { "Frontline Guardian", "Shadow Striker", "Arc Mage" };
-
-            var definition = ScriptableObject.CreateInstance<HeroDefinition>();
-            definition.heroName = names[heroIndex];
-            definition.heroClass = classes[heroIndex];
-            definition.rarity = HeroRarity.Rare;
-            definition.maxHealth = 120 + heroIndex * 25;
-            definition.attackDamage = 18 + heroIndex * 8;
-            definition.defense = 4 + heroIndex;
-            definition.attackSpeed = 1.2f + heroIndex * 0.15f;
-            definition.moveSpeed = 3.5f + heroIndex * 0.25f;
-            definition.primaryRole = roles[heroIndex];
-
-            var first = ScriptableObject.CreateInstance<AbilityDefinition>();
-            first.abilityName = heroIndex == 0 ? "Shield Bash" : heroIndex == 1 ? "Shadow Step" : "Arc Burst";
-            first.abilityType = AbilityType.Damage;
-            first.damageMultiplier = 1.3f + heroIndex * 0.2f;
-            first.cooldown = 4f;
-            first.range = 2.5f;
-            first.description = "A burst damage skill.";
-
-            var second = ScriptableObject.CreateInstance<AbilityDefinition>();
-            second.abilityName = heroIndex == 0 ? "Guardian Ward" : heroIndex == 1 ? "Twin Dagger" : "Solar Flare";
-            second.abilityType = AbilityType.Buff;
-            second.damageMultiplier = 1.6f;
-            second.cooldown = 6f;
-            second.range = 3f;
-            second.description = "High-output follow-up attack.";
-
-            definition.abilities = new AbilityDefinition[] { first, second };
-            return definition;
-        }
-
         private void SpawnHeroes()
         {
+            string[] names = { "Astra", "Varek", "Lyra" };
             Color[] colors = { Color.cyan, Color.magenta, Color.green };
-            var heroDefinition = CreateHeroDefinition(selectedHeroIndex);
+            var heroDefinition = CreateSelectedHeroDefinition(selectedHeroIndex);
 
             GameObject heroObject = GameObject.CreatePrimitive(PrimitiveType.Capsule);
             heroObject.name = heroDefinition.heroName;
@@ -152,7 +108,6 @@ namespace BattleLegends
 
             var hero = heroObject.AddComponent<HeroController>();
             hero.Configure(heroDefinition);
-            hero.transform.localScale = new Vector3(1f, 1.2f, 1f);
 
             var renderer = hero.GetComponent<Renderer>();
             if (renderer != null)
@@ -163,9 +118,45 @@ namespace BattleLegends
             heroes.Add(hero);
         }
 
+        private HeroDefinition CreateSelectedHeroDefinition(int index)
+        {
+            string[] names = { "Astra", "Varek", "Lyra" };
+            HeroClass[] classes = { HeroClass.Warrior, HeroClass.Assassin, HeroClass.Mage };
+            string[] roles = { "Frontline Guardian", "Shadow Striker", "Arc Mage" };
+
+            var def = ScriptableObject.CreateInstance<HeroDefinition>();
+            def.heroName = names[index];
+            def.heroClass = classes[index];
+            def.rarity = HeroRarity.Rare;
+            def.maxHealth = 120 + index * 25;
+            def.attackDamage = 18 + index * 8;
+            def.defense = 4 + index;
+            def.attackSpeed = 1.2f + index * 0.15f;
+            def.moveSpeed = 3.5f + index * 0.2f;
+            def.primaryRole = roles[index];
+
+            var first = ScriptableObject.CreateInstance<AbilityDefinition>();
+            first.abilityName = index == 0 ? "Shield Bash" : index == 1 ? "Shadow Step" : "Arc Burst";
+            first.abilityType = AbilityType.Damage;
+            first.damageMultiplier = 1.3f + index * 0.2f;
+            first.cooldown = 4f;
+            first.range = 2.5f;
+
+            var second = ScriptableObject.CreateInstance<AbilityDefinition>();
+            second.abilityName = index == 0 ? "Guardian Ward" : index == 1 ? "Twin Dagger" : "Solar Flare";
+            second.abilityType = AbilityType.Buff;
+            second.damageMultiplier = 1.6f;
+            second.cooldown = 6f;
+            second.range = 3f;
+
+            def.abilities = new AbilityDefinition[] { first, second };
+            return def;
+        }
+
         private void SpawnEnemies()
         {
             string[] names = { "Goblin Raider", "Bone Archer", "Wisp Fang" };
+
             for (int i = 0; i < names.Length; i++)
             {
                 GameObject enemyObject = GameObject.CreatePrimitive(PrimitiveType.Cube);
@@ -177,52 +168,6 @@ namespace BattleLegends
                 enemy.Configure(names[i], 90f + i * 20f, 11f + i * 4f, 2.4f + i * 0.2f);
                 enemies.Add(enemy);
             }
-        }
-
-        public void ManualHeroAttack(int index)
-        {
-            if (index < 0 || index >= heroes.Count)
-            {
-                return;
-            }
-
-            var hero = heroes[index];
-            if (hero == null || !hero.gameObject.activeSelf)
-            {
-                return;
-            }
-
-            if (hero.target == null)
-            {
-                hero.target = hero.FindNearestEnemy();
-            }
-
-            if (hero.target != null)
-            {
-                hero.BasicAttack(hero.target);
-            }
-        }
-
-        public void HeroCast(int index, int abilityIndex)
-        {
-            if (index < 0 || index >= heroes.Count)
-            {
-                return;
-            }
-
-            var hero = heroes[index];
-            if (hero == null || !hero.gameObject.activeSelf)
-            {
-                return;
-            }
-
-            if (hero.definition == null || hero.definition.abilities == null || abilityIndex >= hero.definition.abilities.Length)
-            {
-                hero.BasicAttack(hero.target);
-                return;
-            }
-
-            hero.UseAbility(hero.definition.abilities[abilityIndex], hero.target);
         }
 
         private bool AreAllHeroesDefeated()
@@ -251,51 +196,34 @@ namespace BattleLegends
             return true;
         }
 
-        public void ShowResult(bool victory)
-        {
-            if (BattleResultController.Instance == null)
-            {
-                return;
-            }
-
-            if (victory)
-            {
-                lastGoldReward = 150;
-                lastXpReward = 45;
-                BattleResultController.Instance.ShowResult(true, lastGoldReward, lastXpReward);
-            }
-            else
-            {
-                lastGoldReward = 60;
-                lastXpReward = 15;
-                BattleResultController.Instance.ShowResult(false, lastGoldReward, lastXpReward);
-            }
-        }
-
         private void Victory()
         {
             battleActive = false;
-            battleFinished = true;
+
             if (ProgressionSystem.Instance != null)
             {
-                ProgressionSystem.Instance.AwardBattleRewards(150, 3);
+                ProgressionSystem.Instance.AwardBattleRewards(150, 45);
             }
 
-            ShowResult(true);
-            Debug.Log("Victory! Rewards granted.");
+            if (BattleResultController.Instance != null)
+            {
+                BattleResultController.Instance.ShowResult(true, 150, 45);
+            }
         }
 
         private void EndBattle()
         {
             battleActive = false;
-            battleFinished = true;
+
             if (ProgressionSystem.Instance != null)
             {
-                ProgressionSystem.Instance.AwardBattleRewards(60, 1);
+                ProgressionSystem.Instance.AwardBattleRewards(60, 15);
             }
 
-            ShowResult(false);
-            Debug.Log("Battle ended.");
+            if (BattleResultController.Instance != null)
+            {
+                BattleResultController.Instance.ShowResult(false, 60, 15);
+            }
         }
     }
 }

@@ -12,12 +12,6 @@ namespace BattleLegends
                 progression.AddComponent<ProgressionSystem>();
             }
 
-            if (FindObjectOfType<InventorySystem>() == null)
-            {
-                var inventory = new GameObject("InventorySystem");
-                inventory.AddComponent<InventorySystem>();
-            }
-
             if (FindObjectOfType<BattleManager>() == null)
             {
                 var battle = new GameObject("BattleManager");
@@ -26,27 +20,14 @@ namespace BattleLegends
 
             if (FindObjectOfType<MainMenuController>() == null)
             {
-                var menu = new GameObject("MainMenu");
+                var menu = new GameObject("MainMenuController");
                 menu.AddComponent<MainMenuController>();
             }
+        }
 
-            if (FindObjectOfType<BattleHUD>() == null)
-            {
-                var hud = new GameObject("BattleHUD");
-                hud.AddComponent<BattleHUD>();
-            }
-
-            if (FindObjectOfType<MobileTouchControls>() == null)
-            {
-                var touch = new GameObject("MobileTouchControls");
-                touch.AddComponent<MobileTouchControls>();
-            }
-
-            if (FindObjectOfType<BattleResultController>() == null)
-            {
-                var result = new GameObject("BattleResult");
-                result.AddComponent<BattleResultController>();
-            }
+        private void Start()
+        {
+            SceneLoader.LoadScene("MainMenu");
         }
     }
 }
