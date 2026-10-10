@@ -1,0 +1,1 @@
+# This file is intentionally minimal and should be replaced by the Unity generated project version file after opening the project in the Unity editor.
