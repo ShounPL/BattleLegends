@@ -65,7 +65,7 @@ namespace BattleLegends
             }
         }
 
-        private CombatActor FindNearestEnemy()
+        public CombatActor FindNearestEnemy()
         {
             CombatActor closest = null;
             float closestDistance = float.MaxValue;

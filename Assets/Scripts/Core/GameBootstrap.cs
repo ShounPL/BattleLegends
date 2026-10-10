@@ -4,30 +4,36 @@ namespace BattleLegends
 {
     public class GameBootstrap : MonoBehaviour
     {
-        public void Start()
+        private void Awake()
         {
-            if (ProgressionSystem.Instance == null)
+            if (FindObjectOfType<ProgressionSystem>() == null)
             {
-                var progressionObject = new GameObject("ProgressionSystem");
-                progressionObject.AddComponent<ProgressionSystem>();
+                var progression = new GameObject("ProgressionSystem");
+                progression.AddComponent<ProgressionSystem>();
             }
 
-            if (BattleManager.Instance == null)
+            if (FindObjectOfType<BattleManager>() == null)
             {
-                var battleObject = new GameObject("BattleManager");
-                battleObject.AddComponent<BattleManager>();
+                var battle = new GameObject("BattleManager");
+                battle.AddComponent<BattleManager>();
             }
 
             if (FindObjectOfType<MainMenuController>() == null)
             {
-                var menuObject = new GameObject("MainMenu");
-                menuObject.AddComponent<MainMenuController>();
+                var menu = new GameObject("MainMenu");
+                menu.AddComponent<MainMenuController>();
             }
 
             if (FindObjectOfType<BattleHUD>() == null)
             {
-                var hudObject = new GameObject("BattleHUD");
-                hudObject.AddComponent<BattleHUD>();
+                var hud = new GameObject("BattleHUD");
+                hud.AddComponent<BattleHUD>();
+            }
+
+            if (FindObjectOfType<MobileTouchControls>() == null)
+            {
+                var touch = new GameObject("MobileTouchControls");
+                touch.AddComponent<MobileTouchControls>();
             }
         }
     }

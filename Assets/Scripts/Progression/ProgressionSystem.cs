@@ -15,12 +15,18 @@ namespace BattleLegends
 
         private void Awake()
         {
+            if (Instance != null && Instance != this)
+            {
+                Destroy(gameObject);
+                return;
+            }
+
             Instance = this;
             DontDestroyOnLoad(gameObject);
             LoadProgress();
         }
 
-        private void OnDestroy()
+        private void OnApplicationQuit()
         {
             SaveProgress();
         }
@@ -36,7 +42,7 @@ namespace BattleLegends
         public void AddExperience(int amount)
         {
             xp += amount;
-          
+
             while (xp >= requiredXp)
             {
                 xp -= requiredXp;

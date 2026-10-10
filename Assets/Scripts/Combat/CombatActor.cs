@@ -61,6 +61,7 @@ namespace BattleLegends
 
             float damageAmount = damage * ability.damageMultiplier;
             enemy.TakeDamage(damageAmount);
+            nextAttackTime = Time.time + ability.cooldown;
         }
 
         protected virtual void Die()

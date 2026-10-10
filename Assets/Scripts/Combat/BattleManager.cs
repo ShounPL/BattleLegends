@@ -99,7 +99,7 @@ namespace BattleLegends
 
                 var basic = ScriptableObject.CreateInstance<AbilityDefinition>();
                 basic.abilityName = i == 0 ? "Shield Bash" : i == 1 ? "Shadow Step" : "Arc Burst";
-                basic.abilityType = i == 0 ? AbilityType.Damage : AbilityType.Damage;
+                basic.abilityType = AbilityType.Damage;
                 basic.damageMultiplier = 1.3f + i * 0.2f;
                 basic.cooldown = 4f;
                 basic.range = 2.5f;
@@ -218,7 +218,10 @@ namespace BattleLegends
         private void Victory()
         {
             battleActive = false;
-            ProgressionSystem.Instance.AwardBattleRewards(150, 3);
+            if (ProgressionSystem.Instance != null)
+            {
+                ProgressionSystem.Instance.AwardBattleRewards(150, 3);
+            }
             Debug.Log("Victory! Rewards granted.");
         }
 
