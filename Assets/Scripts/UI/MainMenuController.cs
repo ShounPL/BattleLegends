@@ -4,8 +4,8 @@ namespace BattleLegends
 {
     public class MainMenuController : MonoBehaviour
     {
-        private const int MenuWidth = 360;
-        private const int MenuHeight = 420;
+        private const int MenuWidth = 420;
+        private const int MenuHeight = 520;
 
         private void OnGUI()
         {
@@ -27,22 +27,32 @@ namespace BattleLegends
 
             if (GUILayout.Button("Heroes", GUILayout.Height(42f)))
             {
-                SceneLoader.LoadScene("HeroSelect");
+                SceneLoader.LoadScene("HeroRoster");
             }
 
             if (GUILayout.Button("Dungeons", GUILayout.Height(42f)))
             {
-                Debug.Log("Dungeons placeholder");
+                SceneLoader.LoadScene("DungeonSelection");
             }
 
             if (GUILayout.Button("Inventory", GUILayout.Height(42f)))
             {
-                Debug.Log("Inventory placeholder");
+                SceneLoader.LoadScene("Inventory");
             }
 
-            if (GUILayout.Button("Settings", GUILayout.Height(42f)))
+            if (GUILayout.Button("Shop", GUILayout.Height(42f)))
             {
-                Debug.Log("Settings placeholder");
+                SceneLoader.LoadScene("Shop");
+            }
+
+            if (GUILayout.Button("Quests", GUILayout.Height(42f)))
+            {
+                SceneLoader.LoadScene("Quests");
+            }
+
+            if (GUILayout.Button("Daily Reward", GUILayout.Height(42f)))
+            {
+                SceneLoader.LoadScene("DailyReward");
             }
 
             if (GUILayout.Button("Quit", GUILayout.Height(42f)))
