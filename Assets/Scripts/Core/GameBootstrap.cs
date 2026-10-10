@@ -12,6 +12,12 @@ namespace BattleLegends
                 progression.AddComponent<ProgressionSystem>();
             }
 
+            if (FindObjectOfType<InventorySystem>() == null)
+            {
+                var inventory = new GameObject("InventorySystem");
+                inventory.AddComponent<InventorySystem>();
+            }
+
             if (FindObjectOfType<BattleManager>() == null)
             {
                 var battle = new GameObject("BattleManager");

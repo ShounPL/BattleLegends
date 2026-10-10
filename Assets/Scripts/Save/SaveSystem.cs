@@ -36,5 +36,6 @@ namespace BattleLegends
         public int xp = 0;
         public int requiredXp = 100;
         public int heroLevel = 1;
+        public string inventoryJson = "";
     }
 }

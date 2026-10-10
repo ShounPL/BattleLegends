@@ -36,6 +36,10 @@ namespace BattleLegends
             gold += goldReward + enemyCount * 10;
             gems += 5;
             AddExperience(35 + enemyCount * 12);
+            if (InventorySystem.Instance != null)
+            {
+                InventorySystem.Instance.AddRandomLoot(1);
+            }
             SaveProgress();
         }
 
@@ -55,6 +59,11 @@ namespace BattleLegends
 
         public void SaveProgress()
         {
+            if (InventorySystem.Instance != null)
+            {
+                InventorySystem.Instance.SaveInventory();
+            }
+
             SaveSystem.Save(new PlayerProgress
             {
                 gold = gold,
@@ -62,7 +71,8 @@ namespace BattleLegends
                 accountLevel = accountLevel,
                 xp = xp,
                 requiredXp = requiredXp,
-                heroLevel = heroLevel
+                heroLevel = heroLevel,
+                inventoryJson = InventorySystem.Instance != null ? JsonUtility.ToJson(new InventorySaveData { items = InventorySystem.Instance.items }, true) : ""
             });
         }
 
@@ -75,6 +85,11 @@ namespace BattleLegends
             xp = progress.xp;
             requiredXp = progress.requiredXp;
             heroLevel = progress.heroLevel;
+
+            if (InventorySystem.Instance != null)
+            {
+                InventorySystem.Instance.LoadInventory();
+            }
         }
     }
 }
