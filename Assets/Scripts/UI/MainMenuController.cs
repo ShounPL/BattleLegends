@@ -5,7 +5,7 @@ namespace BattleLegends
     public class MainMenuController : MonoBehaviour
     {
         private const int MenuWidth = 470;
-        private const int MenuHeight = 620;
+        private const int MenuHeight = 680;
 
         private void OnGUI()
         {
@@ -62,6 +62,22 @@ namespace BattleLegends
             if (GUILayout.Button("Daily Reward", GUILayout.Height(42f)))
             {
                 SceneLoader.LoadScene("DailyReward");
+            }
+
+            if (GUILayout.Button("Battle Pass", GUILayout.Height(42f)))
+            {
+                if (BattlePassSystem.Instance != null)
+                {
+                    Debug.Log("Open Battle Pass UI");
+                }
+            }
+
+            if (GUILayout.Button("Event", GUILayout.Height(42f)))
+            {
+                if (EventSystem.Instance != null)
+                {
+                    Debug.Log("Open Event UI");
+                }
             }
 
             if (GUILayout.Button("Clan Boss", GUILayout.Height(42f)))
