@@ -10,8 +10,11 @@ namespace BattleLegends
         public List<HeroController> heroes = new List<HeroController>();
         public List<EnemyController> enemies = new List<EnemyController>();
         public bool battleActive;
+        public bool battleFinished;
         public int roundNumber = 1;
         public int selectedHeroIndex = 0;
+        public int lastGoldReward;
+        public int lastXpReward;
 
         private void Awake()
         {
@@ -51,11 +54,32 @@ namespace BattleLegends
 
         public void StartBattle()
         {
+            if (BattleResultController.Instance != null)
+            {
+                BattleResultController.Instance.HideResult();
+            }
+
             ClearBattle();
             SpawnHeroes();
             SpawnEnemies();
             battleActive = true;
+            battleFinished = false;
             roundNumber = 1;
+        }
+
+        public void ReturnToMenu()
+        {
+            battleActive = false;
+            battleFinished = false;
+            lastGoldReward = 0;
+            lastXpReward = 0;
+
+            if (BattleResultController.Instance != null)
+            {
+                BattleResultController.Instance.HideResult();
+            }
+
+            ClearBattle();
         }
 
         private void ClearBattle()
@@ -120,13 +144,14 @@ namespace BattleLegends
         private void SpawnHeroes()
         {
             Color[] colors = { Color.cyan, Color.magenta, Color.green };
+            var heroDefinition = CreateHeroDefinition(selectedHeroIndex);
 
             GameObject heroObject = GameObject.CreatePrimitive(PrimitiveType.Capsule);
-            heroObject.name = CreateHeroDefinition(selectedHeroIndex).heroName;
+            heroObject.name = heroDefinition.heroName;
             heroObject.transform.position = new Vector3(-2f, 0f, 0f);
 
             var hero = heroObject.AddComponent<HeroController>();
-            hero.Configure(CreateHeroDefinition(selectedHeroIndex));
+            hero.Configure(heroDefinition);
             hero.transform.localScale = new Vector3(1f, 1.2f, 1f);
 
             var renderer = hero.GetComponent<Renderer>();
@@ -226,23 +251,50 @@ namespace BattleLegends
             return true;
         }
 
+        public void ShowResult(bool victory)
+        {
+            if (BattleResultController.Instance == null)
+            {
+                return;
+            }
+
+            if (victory)
+            {
+                lastGoldReward = 150;
+                lastXpReward = 45;
+                BattleResultController.Instance.ShowResult(true, lastGoldReward, lastXpReward);
+            }
+            else
+            {
+                lastGoldReward = 60;
+                lastXpReward = 15;
+                BattleResultController.Instance.ShowResult(false, lastGoldReward, lastXpReward);
+            }
+        }
+
         private void Victory()
         {
             battleActive = false;
+            battleFinished = true;
             if (ProgressionSystem.Instance != null)
             {
                 ProgressionSystem.Instance.AwardBattleRewards(150, 3);
             }
+
+            ShowResult(true);
             Debug.Log("Victory! Rewards granted.");
         }
 
         private void EndBattle()
         {
             battleActive = false;
+            battleFinished = true;
             if (ProgressionSystem.Instance != null)
             {
                 ProgressionSystem.Instance.AwardBattleRewards(60, 1);
             }
+
+            ShowResult(false);
             Debug.Log("Battle ended.");
         }
     }

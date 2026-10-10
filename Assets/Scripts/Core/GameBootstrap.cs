@@ -35,6 +35,12 @@ namespace BattleLegends
                 var touch = new GameObject("MobileTouchControls");
                 touch.AddComponent<MobileTouchControls>();
             }
+
+            if (FindObjectOfType<BattleResultController>() == null)
+            {
+                var result = new GameObject("BattleResult");
+                result.AddComponent<BattleResultController>();
+            }
         }
     }
 }
